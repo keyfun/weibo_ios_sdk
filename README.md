@@ -1,9 +1,5 @@
 # WeiboSDK
-
-[![CI Status](http://img.shields.io/travis/Key/WeiboSDK.svg?style=flat)](https://travis-ci.org/Key/WeiboSDK)
-[![Version](https://img.shields.io/cocoapods/v/WeiboSDK.svg?style=flat)](http://cocoapods.org/pods/WeiboSDK)
-[![License](https://img.shields.io/cocoapods/l/WeiboSDK.svg?style=flat)](http://cocoapods.org/pods/WeiboSDK)
-[![Platform](https://img.shields.io/cocoapods/p/WeiboSDK.svg?style=flat)](http://cocoapods.org/pods/WeiboSDK)
+It is a swift wrapper for SinaWeiboSDK
 
 ## Usage
 
@@ -17,5 +13,5 @@ WeiboSDK is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod "WeiboSDK"
+pod 'WeiboSDK', :git => 'https://github.com/keyfun/weibo_ios_sdk.git'
 ```
