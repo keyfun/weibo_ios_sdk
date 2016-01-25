@@ -4,32 +4,21 @@
 //  Created by Key Hui on 14/9/15.
 //
 
-final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
+public class SinaWeiboManager:NSObject, WeiboSDKDelegate {
     
-    let kMale = "male"
-    let kFemale = "female"
-    
-    static var sharedInstance = SinaWeiboManager()
+    static public var sharedInstance = SinaWeiboManager()
     var expiresIn:Double = 0
-    
-    // for HeHa Login
-    var socialInfo:String = ""
-    var profileDict = [String:String]()
+    var userId:String = ""
+    var accessToken:String = ""
+    var refreshToken:String = ""
     
     var returnsTheCallback : (() -> ())?
     
     override init() {
         super.init()
     }
-    override internal func getShareInstance() -> BaseManager? {
-        return SinaWeiboManager.sharedInstance
-    }
     
-    override internal func setShareInstance(instance: BaseManager) {
-        SinaWeiboManager.sharedInstance = instance as! SinaWeiboManager
-    }
-    
-    override func registerApp() {
+    public func registerApp(appKey:String) {
         
         // marco define in build-settings Swift Custom Flags
         #if DEBUG
@@ -38,22 +27,22 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
             WeiboSDK.enableDebugMode(false)
         #endif
         
-        WeiboSDK.registerApp(SocialConstants.sharedInstance.kWeiboAppKey)
+        WeiboSDK.registerApp(appKey)
         print("[WeiboManager] WeiboSDK Version = \(WeiboSDK.getSDKVersion())")
     }
     
-    func isAppInstalled() -> Bool {
+    public func isAppInstalled() -> Bool {
         return WeiboSDK.isWeiboAppInstalled()
     }
     
-    func didReceiveWeiboRequest(request: WBBaseRequest!) {
+    public func didReceiveWeiboRequest(request: WBBaseRequest!) {
         print("[SinaWeiboManager] didReceiveWeiboRequest request = \(request.description)")
         if (request.isKindOfClass(WBProvideMessageForWeiboRequest)) {
             //TODO: sth
         }
     }
     
-    func didReceiveWeiboResponse(response: WBBaseResponse!) {
+    public func didReceiveWeiboResponse(response: WBBaseResponse!) {
         if (response.isKindOfClass(WBSendMessageToWeiboResponse)) {
             let message = "响应状态:\(response.statusCode.rawValue)\n响应UserInfo数据:\(response.userInfo)\n原请求UserInfo数据:\(response.requestUserInfo)"
             
@@ -72,45 +61,30 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
             print("[SinaWeiboManager] WBAuthorizeResponse message = \(message)")
             
             if(response.statusCode.rawValue >= 0) {
-                let userId:String = tmpRes.userID
-                let accessToken:String = tmpRes.accessToken
-                let refreshToken:String = tmpRes.refreshToken
-                var expiresIn:Double = NSDate().timeIntervalSinceDate(tmpRes.expirationDate)
+                userId = tmpRes.userID
+                accessToken = tmpRes.accessToken
+                refreshToken = tmpRes.refreshToken
+                expiresIn = NSDate().timeIntervalSinceDate(tmpRes.expirationDate)
                 expiresIn = -1 * floor(expiresIn)
-                self.setData(userId, accessToken: accessToken, refreshToken: refreshToken, expiresIn: expiresIn)
-                
-//                delegate?.onWeiboAuthComplete(true)
-                delegate?.onAuthComplete(self.provider, success: true)
-            } else {
-//                delegate?.onWeiboAuthComplete(false)
-                delegate?.onAuthComplete(self.provider, success: false)
             }
         }
     }
     
-    override func auth() {
+    public func auth() {
         let request:WBAuthorizeRequest! = WBAuthorizeRequest.request() as! WBAuthorizeRequest
-        request.redirectURI = SocialConstants.sharedInstance.kWeiboRedirectURI
+        request.redirectURI = "http://sinaweibo.com"
         request.scope = "all"
         WeiboSDK.sendRequest(request)
     }
     
-    override func renewAccessToken(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func renewAccessToken(refreshToken:String, completion: (result: AnyObject?, error: NSError?)->()) {
         let request = WBHttpRequest(forRenewAccessTokenWithRefreshToken: refreshToken, queue: nil,
             withCompletionHandler:{
             (httpRequest: WBHttpRequest!,result: AnyObject!, error: NSError!) in
                 
                 if(result != nil && error == nil) {
-                    
-                    let json:JSON = JSON(result!)
-                    let userId:String = json["uid"].stringValue
-                    let accessToken:String = json["access_token"].stringValue
-                    let refreshToken:String = json["refresh_token"].stringValue
-                    let expiresIn:Double = json["expires_in"].doubleValue
-                    self.setData(userId, accessToken: accessToken, refreshToken: refreshToken, expiresIn: expiresIn)
-                    
+                    print(result)
                     completion(result: result, error: nil)
-                    //print("[WeiboManager] callRefreshToken result = \(result.debugDescription)")
                 } else {
                     completion(result: nil, error: error)
                     print("[WeiboManager] callRefreshToken error = \(error.debugDescription)")
@@ -120,41 +94,26 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] renewAccessToken = \(request)")
     }
     
-    func logout() {
+    public func logout() {
         WeiboSDK.logOutWithToken(accessToken, delegate: nil, withTag: "")
-
-        SocialManager.sharedInstance.clearStatus(self.provider)
-        self.clearData()
     }
     
-    func getUserProfile(completion: (result: WeiboUser?, error: NSError?)->()) {
+    public func getUserProfile(completion: (result: WeiboUser?, error: NSError?)->()) {
         
-        let request = WBHttpRequest(forUserProfile: userId, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler:{
+        _ = WBHttpRequest(forUserProfile: userId, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler:{
             (httpRequest: WBHttpRequest!,result: AnyObject!, error: NSError!) in
-            //print("[WeiboManager] getUserInfo result = \(result.debugDescription)")
             
             if(error == nil) {
                 let wbUser:WeiboUser = result as! WeiboUser
-                //print("[WeiboManager] wbUser = \(wbUser.debugDescription)")
-                //print("[WeiboManager] name = \(wbUser.name), profileImageUrl = \(wbUser.profileImageUrl)")
-                
-                self.setSocialInfoAndProfile(wbUser)
-                
-//                self.delegate?.onWeiboGetUserInfoComplete(true)
-                self.delegate?.onGetUserInfoComplete(self.provider, success: true)
                 completion(result: wbUser, error: nil)
             } else {
-//                self.delegate?.onWeiboGetUserInfoComplete(false)
-                self.delegate?.onGetUserInfoComplete(self.provider, success: false)
                 completion(result: nil, error: error)
                 print("[WeiboManager] getUserProfile = \(error.debugDescription)")
             }
         })
-        
-        print("[WeiboManager] getUserProfile = \(request)")
     }
     
-    func getFriendsListOfUser(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func getFriendsListOfUser(completion: (result: AnyObject?, error: NSError?)->()) {
         
         let request = WBHttpRequest(forFriendsListOfUser: userId, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler:{
             (httpRequest: WBHttpRequest!,result: AnyObject!, error: NSError!) in
@@ -171,7 +130,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] getFriends = \(request)")
     }
     
-    func getFollowersListOfUser(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func getFollowersListOfUser(completion: (result: AnyObject?, error: NSError?)->()) {
         
         let request = WBHttpRequest(forFollowersListOfUser: userId, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler: {
         
@@ -189,7 +148,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] getFollowersListOfUser = \(request)")
     }
     
-    func getStatusIDsFromCurrentUser(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func getStatusIDsFromCurrentUser(completion: (result: AnyObject?, error: NSError?)->()) {
         
         let request = WBHttpRequest(forStatusIDsFromCurrentUser: userId, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler: {
         
@@ -204,7 +163,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] getStatusIDsFromCurrentUser = \(request)")
     }
     
-    func getUserStatuses(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func getUserStatuses(completion: (result: AnyObject?, error: NSError?)->()) {
         
         var params:Dictionary<NSObject, AnyObject> = Dictionary<NSObject, AnyObject>()
         params["access_token"] = accessToken
@@ -231,7 +190,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] getUserStatuses = \(request)")
     }
     
-    func shareStatus(title:String?, imageData:NSData?, completion: (result: AnyObject?, error: NSError?)->()) {
+    public func shareStatus(title:String?, imageData:NSData?, completion: (result: AnyObject?, error: NSError?)->()) {
         
         var image:WBImageObject? = WBImageObject()
         if(imageData != nil) {
@@ -256,7 +215,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] shareStatus = \(request)")
     }
     
-    func shareStatusViaApp(title:String?, imageData:NSData?, completion: (result: AnyObject?, error: NSError?)->()) {
+    public func shareStatusViaApp(title:String?, imageData:NSData?, completion: (result: AnyObject?, error: NSError?)->()) {
         
         // TODO: no completion callback yet
         let message = WBMessageObject()
@@ -272,7 +231,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         WeiboSDK.sendRequest(request)
     }
     
-    func followUser(screenName screenName:String, completion: (result: AnyObject?, error: NSError?)->()) {
+    public func followUser(screenName screenName:String, completion: (result: AnyObject?, error: NSError?)->()) {
         
         let request = WBHttpRequest(forFollowAUser: screenName, withAccessToken: accessToken, andOtherProperties: nil, queue: nil, withCompletionHandler: {
         
@@ -290,7 +249,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] followUser = \(request)")
     }
     
-    func getUserComments(completion: (result: AnyObject?, error: NSError?)->()) {
+    public func getUserComments(completion: (result: AnyObject?, error: NSError?)->()) {
         
         var params:Dictionary<NSObject, AnyObject> = Dictionary<NSObject, AnyObject>()
         params["access_token"] = accessToken
@@ -313,7 +272,7 @@ final class SinaWeiboManager:NSObject, WeiboSDKDelegate {
         print("[WeiboManager] getUserComments = \(request)")
     }
     
-    override func handleOpenURL(openURL url: NSURL, sourceApplication: String?) -> Bool {
+    public func handleOpenURL(openURL url: NSURL, sourceApplication: String?) -> Bool {
         return WeiboSDK.handleOpenURL(url, delegate: SinaWeiboManager.sharedInstance)
     }
     

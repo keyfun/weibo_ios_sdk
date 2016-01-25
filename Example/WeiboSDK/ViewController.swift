@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import WeiboSDK
 
 class ViewController: UIViewController {
 
@@ -23,7 +24,12 @@ class ViewController: UIViewController {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         
-        WeiboSDK.registerApp("1234")
+        print("START")
+        print(WeiboSDK.getSDKVersion())
+        print(WeiboSDK.isWeiboAppInstalled())
+        WeiboSDK.registerApp("1234") // crash at getPublicKey
+        //SinaWeiboManager.sharedInstance.registerApp("1234") // crash at getPublicKey
+        print("END")
     }
 
 }
