@@ -1,0 +1,14 @@
+PODS:
+  - WeiboSDK (3.1.3)
+
+DEPENDENCIES:
+  - WeiboSDK (from `../`)
+
+EXTERNAL SOURCES:
+  WeiboSDK:
+    :path: ../
+
+SPEC CHECKSUMS:
+  WeiboSDK: 5f2a707c4569a64f4641f4171acd712016f24342
+
+COCOAPODS: 0.39.0

@@ -19,11 +19,3 @@ it, simply add the following line to your Podfile:
 ```ruby
 pod "WeiboSDK"
 ```
-
-## Author
-
-Key, key.hui@iheha.com
-
-## License
-
-WeiboSDK is available under the MIT license. See the LICENSE file for more info.

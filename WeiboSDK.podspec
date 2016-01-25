@@ -1,40 +1,18 @@
-#
-# Be sure to run `pod lib lint WeiboSDK.podspec' to ensure this is a
-# valid spec before submitting.
-#
-# Any lines starting with a # are optional, but their use is encouraged
-# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
-#
-
 Pod::Spec.new do |s|
-  s.name             = "WeiboSDK"
-  s.version          = "0.1.0"
-  s.summary          = "A short description of WeiboSDK."
+  s.name         = "WeiboSDK"
 
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!  
-  s.description      = <<-DESC
-                       DESC
+  s.summary      = "WeiboSDK."
+  s.homepage     = "https://github.com/keyfun/weibo_ios_sdk"
+  s.license      = 'HeHa'
+  s.author       = { "Keyfun" => "keyfun.hk@gmail.com" }
 
-  s.homepage         = "https://github.com/<GITHUB_USERNAME>/WeiboSDK"
-  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
-  s.license          = 'MIT'
-  s.author           = { "Key" => "key.hui@iheha.com" }
-  s.source           = { :git => "https://github.com/<GITHUB_USERNAME>/WeiboSDK.git", :tag => s.version.to_s }
-  # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
-
-  s.platform     = :ios, '8.0'
-  s.requires_arc = true
-
-  s.source_files = 'Pod/Classes/**/*'
-  s.resource_bundles = {
-    'WeiboSDK' => ['Pod/Assets/*.png']
-  }
-
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+  s.version      = "3.1.3"
+  s.source       = { :git => "https://github.com/keyfun/weibo_ios_sdk.git", :tag => "3.1.3" }
+  s.platform     = :ios, '6.0'
+  s.requires_arc = false
+  s.source_files = 'libWeiboSDK/*.{h,m}'
+  s.resource     = 'libWeiboSDK/WeiboSDK.bundle'
+  s.vendored_libraries  = 'libWeiboSDK/libWeiboSDK.a'
+  s.frameworks   = 'ImageIO', 'SystemConfiguration', 'CoreText', 'QuartzCore', 'Security', 'UIKit', 'Foundation', 'CoreGraphics','CoreTelephony'
+  s.libraries = 'sqlite3', 'z'
 end
