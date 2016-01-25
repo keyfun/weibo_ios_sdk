@@ -1,5 +1,5 @@
 # WeiboSDK
-It is a swift wrapper for SinaWeiboSDK
+It is a swift wrapper for SinaWeiboSDK, library from https://github.com/sinaweibosdk/weibo_ios_sdk
 
 ## Usage
 
